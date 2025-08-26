@@ -1,34 +1,42 @@
 <template>
   <div id="app">
-    <a-layout class="layout">
-      <a-layout-header class="header">
-        <Header />
-      </a-layout-header>
-      <a-layout class="main-layout">
-        <a-layout-sider 
-          width="280" 
-          class="sider"
-          v-model:collapsed="collapsed"
-          :trigger="null"
-          collapsible
-        >
-          <Sidebar 
-            :current-section="currentSection" 
-            @section-changed="handleSectionChange"
-          />
-        </a-layout-sider>
-        <a-layout class="content-layout">
-          <a-layout-content class="content">
-            <router-view v-slot="{ Component }">
-              <component :is="Component" :key="$route.fullPath" />
-            </router-view>
-          </a-layout-content>
-          <a-layout-footer class="footer">
-            <Footer />
-          </a-layout-footer>
+    <!-- 登录页面 -->
+    <template v-if="$route.name === 'Login'">
+      <router-view />
+    </template>
+    
+    <!-- 主应用布局 -->
+    <template v-else>
+      <a-layout class="layout">
+        <a-layout-header class="header">
+          <Header />
+        </a-layout-header>
+        <a-layout class="main-layout">
+          <a-layout-sider 
+            width="280" 
+            class="sider"
+            v-model:collapsed="collapsed"
+            :trigger="null"
+            collapsible
+          >
+            <Sidebar 
+              :current-section="currentSection" 
+              @section-changed="handleSectionChange"
+            />
+          </a-layout-sider>
+          <a-layout class="content-layout">
+            <a-layout-content class="content">
+              <router-view v-slot="{ Component }">
+                <component :is="Component" :key="$route.fullPath" />
+              </router-view>
+            </a-layout-content>
+            <a-layout-footer class="footer">
+              <Footer />
+            </a-layout-footer>
+          </a-layout>
         </a-layout>
       </a-layout>
-    </a-layout>
+    </template>
   </div>
 </template>
 
@@ -84,10 +92,8 @@ watch(
       currentSection.value = 'optimization';
     } else if (newPath === '/device') {
       currentSection.value = 'device-management';
-    } else if (newPath === '/user') {
-      currentSection.value = 'user-permissions';
-    } else if (newPath === '/log') {
-      currentSection.value = 'operation-log';
+    } else if (newPath === '/system') {
+      currentSection.value = 'system-management';
     }
   },
   { immediate: true }

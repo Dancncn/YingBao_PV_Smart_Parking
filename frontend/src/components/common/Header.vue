@@ -35,11 +35,7 @@
       <a-space :size="16">
         <a-dropdown>
           <template #overlay>
-            <a-menu>
-              <a-menu-item key="profile">
-                <UserOutlined />
-                个人资料
-              </a-menu-item>
+            <a-menu @click="handleMenuClick">
               <a-menu-item key="settings">
                 <SettingOutlined />
                 系统设置
@@ -53,10 +49,10 @@
           </template>
           <a-button type="text" class="user-button">
             <a-space>
-              <a-avatar :size="32" src="https://picsum.photos/id/1005/32/32">
-                <template #icon><UserOutlined /></template>
+              <a-avatar :size="32" :style="{ backgroundColor: getUserAvatarColor() }">
+                {{ getUserInitial() }}
               </a-avatar>
-              <span class="username">管理员</span>
+              <span class="username">{{ authStore.username || '用户' }} ({{ getRoleText() }})</span>
               <DownOutlined />
             </a-space>
           </a-button>
@@ -68,6 +64,9 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { message } from 'ant-design-vue';
+import { useAuthStore } from '@/stores/auth';
 import {
   EnvironmentOutlined,
   ClockCircleOutlined,
@@ -80,6 +79,10 @@ import {
 const currentTime = ref('');
 let timer = null;
 
+// 路由和认证store
+const router = useRouter();
+const authStore = useAuthStore();
+
 // 实时时间更新
 function updateCurrentTime() {
   const now = new Date();
@@ -91,6 +94,48 @@ function updateCurrentTime() {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   currentTime.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+// 获取用户头像颜色
+const getUserAvatarColor = () => {
+  return authStore.isAdmin ? '#52c41a' : '#1890ff';
+};
+
+// 获取用户名首字母
+const getUserInitial = () => {
+  const username = authStore.username;
+  return username ? username.charAt(0).toUpperCase() : 'U';
+};
+
+// 获取角色文本
+const getRoleText = () => {
+  return authStore.isAdmin ? '管理员' : '操作员';
+};
+
+// 处理菜单点击
+const handleMenuClick = async ({ key }) => {
+  switch (key) {
+    case 'settings':
+      message.info('系统设置功能开发中...');
+      break;
+    case 'logout':
+      await handleLogout();
+      break;
+  }
+};
+
+// 处理登出
+const handleLogout = async () => {
+  try {
+    await authStore.logout();
+    message.success('已退出登录');
+    
+    // 使用replace而不是push，避免用户按后退键回到主页面
+    router.replace('/login');
+  } catch (error) {
+    console.error('登出失败:', error);
+    message.error('登出失败，请重试');
+  }
+};
 
 onMounted(() => {
   updateCurrentTime();
