@@ -50,18 +50,11 @@
           设备管理
         </a-menu-item>
         
-        <a-menu-item key="user-permissions" @click="navigateTo('user-permissions')">
+        <a-menu-item key="system-management" @click="navigateTo('system-management')">
           <template #icon>
-            <font-awesome-icon icon="users" />
+            <font-awesome-icon icon="cogs" />
           </template>
-          用户权限
-        </a-menu-item>
-        
-        <a-menu-item key="operation-log" @click="navigateTo('operation-log')">
-          <template #icon>
-            <font-awesome-icon icon="history" />
-          </template>
-          操作日志
+          系统管理
         </a-menu-item>
       </a-menu>
     </div>
@@ -78,7 +71,7 @@
 </template>
 
 <script setup>
-import { defineProps, ref } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps({
@@ -91,9 +84,15 @@ const props = defineProps({
 const router = useRouter();
 
 const navigateTo = (section) => {
+  // 路由映射
+  const routeMap = {
+    'device-management': 'device',
+    'system-management': 'system'
+  };
+  
   // 触发路由跳转
   router.push({
-    path: `/${section === 'device-management' ? 'device' : section}`,
+    path: `/${routeMap[section] || section}`,
     query: {
       t: new Date().getTime() // 添加随机参数避免缓存
     }

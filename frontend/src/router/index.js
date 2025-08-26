@@ -1,16 +1,30 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import Login from '../views/Login.vue';
 import Dashboard from '../views/Dashboard.vue';
 import Prediction from '../views/Prediction.vue';
 import Report from '../views/Report.vue';
 import Optimization from '../views/Optimization.vue';
 import DeviceManagement from '../views/DeviceManagement.vue';
-import UserPermissions from '../views/UserPermissions.vue';
-import OperationLog from '../views/OperationLog.vue';
+import SystemManagement from '../views/SystemManagement.vue';
 
 const routes = [
   {
     path: '/',
-    redirect: '/dashboard'
+    redirect: (to) => {
+      // 如果用户已登录，重定向到仪表盘；否则重定向到登录页
+      const token = localStorage.getItem('access_token');
+      return token ? '/dashboard' : '/login';
+    }
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: {
+      title: '用户登录',
+      requiresAuth: false
+    }
   },
   {
     path: '/dashboard',
@@ -19,7 +33,8 @@ const routes = [
     meta: {
       title: '实时监控面板',
       icon: 'tachometerAlt',
-      noCache: true  // 标记为不缓存
+      noCache: true,
+      requiresAuth: true
     }
   },
   {
@@ -29,7 +44,8 @@ const routes = [
     meta: {
       title: '发电量预测',
       icon: 'chartLine',
-      noCache: true
+      noCache: true,
+      requiresAuth: true
     }
   },
   {
@@ -39,7 +55,8 @@ const routes = [
     meta: {
       title: '数据报告中心',
       icon: 'fileAlt',
-      noCache: true
+      noCache: true,
+      requiresAuth: true
     }
   },
   {
@@ -49,7 +66,8 @@ const routes = [
     meta: {
       title: '设备优化管理',
       icon: 'slidersH',
-      noCache: true
+      noCache: true,
+      requiresAuth: true
     }
   },
   {
@@ -59,27 +77,20 @@ const routes = [
     meta: {
       title: '设备管理',
       icon: 'cogs',
-      noCache: true
+      noCache: true,
+      requiresAuth: true
     }
   },
+
   {
-    path: '/user',
-    name: 'UserPermissions',
-    component: UserPermissions,
+    path: '/system',
+    name: 'SystemManagement',
+    component: SystemManagement,
     meta: {
-      title: '用户权限管理',
-      icon: 'users',
-      noCache: true
-    }
-  },
-  {
-    path: '/log',
-    name: 'OperationLog',
-    component: OperationLog,
-    meta: {
-      title: '操作日志',
-      icon: 'history',
-      noCache: true
+      title: '系统管理',
+      icon: 'cogs',
+      noCache: true,
+      requiresAuth: true
     }
   }
 ];
@@ -92,15 +103,47 @@ const router = createRouter({
   }
 });
 
-// 路由守卫：添加时间戳参数，避免缓存
-router.beforeEach((to, from, next) => {
+// 路由守卫：认证和权限检查
+router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   if (to.meta.title) {
-    document.title = `${to.meta.title} - 实验中心停车场管理系统`;
+    document.title = `${to.meta.title} - 萤宝智能光伏停车场管理系统`;
+  }
+  
+  // 获取认证store
+  const authStore = useAuthStore();
+  
+  // 轻量级初始化认证状态（不调用API）
+  await authStore.initAuth();
+  
+  // 检查是否需要认证
+  if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
+    // 需要认证但未登录，跳转到登录页
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    });
+    return;
+  }
+  
+  // 检查管理员权限
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    // 需要管理员权限但当前用户不是管理员
+    next({
+      path: '/dashboard',
+      query: { error: 'insufficient_permissions' }
+    });
+    return;
+  }
+  
+  // 如果已登录且访问登录页，重定向到仪表盘
+  if (to.path === '/login' && authStore.isAuthenticated) {
+    next('/dashboard');
+    return;
   }
   
   // 为所有请求添加时间戳参数，确保每次请求都是新的
-  if (to.path && !to.query.t) {
+  if (to.path && !to.query.t && to.meta.noCache) {
     next({
       path: to.path,
       query: {

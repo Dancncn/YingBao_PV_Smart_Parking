@@ -199,15 +199,7 @@
       <DeviceManagement />
     </div>
 
-    <!-- 6. 用户权限管理 -->
-    <div v-if="$route.path === '/user' || currentSection === 'user-permissions'">
-      <UserPermissions />
-    </div>
 
-    <!-- 7. 操作日志 -->
-    <div v-if="$route.path === '/log' || currentSection === 'operation-log'">
-      <OperationLog />
-    </div>
   </div>
 </template>
 
@@ -219,8 +211,7 @@ import Prediction from './Prediction.vue';
 import Report from './Report.vue';
 import Optimization from './Optimization.vue';
 import DeviceManagement from './DeviceManagement.vue';
-import UserPermissions from './UserPermissions.vue';
-import OperationLog from './OperationLog.vue';
+
 
 // 当前显示的功能区域
 const currentSection = ref('dashboard');
@@ -402,9 +393,7 @@ const getSectionTitle = (section) => {
     'prediction': '发电量预测',
     'reports': '数据报告中心',
     'optimization': '设备优化管理',
-    'device-management': '设备管理',
-    'user-permissions': '用户权限管理',
-    'operation-log': '操作日志'
+    'device-management': '设备管理'
   };
   return titles[section] || '光伏管理系统';
 };

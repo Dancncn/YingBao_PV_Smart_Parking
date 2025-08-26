@@ -9,10 +9,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // 配置开发服务器端口为8080
+  // 配置开发服务器端口
   server: {
-    port: 8080,         // 强制使用8080端口
-    strictPort: true,   // 端口被占用时直接退出，而不是尝试其他端口
+    port: 3000,         // 使用3000端口
+    strictPort: false,  // 端口被占用时尝试其他端口
     hmr: {
       protocol: 'ws',
       host: 'localhost'
@@ -26,9 +26,7 @@ export default defineConfig({
       'Cache': 'no-store'
     },
     // 禁用预构建缓存
-    cacheDir: false,
-    // 强制每次启动时重新构建
-    force: true
+    cacheDir: false
   },
   // 构建时添加内容哈希值，确保生产环境缓存正确更新
   build: {
@@ -44,6 +42,7 @@ export default defineConfig({
   },
   // 禁用Vite自身的缓存机制
   optimizeDeps: {
-    cacheDir: false
+    cacheDir: false,
+    force: true  // 强制每次启动时重新构建依赖
   }
 })
